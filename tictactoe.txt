@@ -1,0 +1,130 @@
+//Validation
+function isValidMove(gameState, move) {
+  return gameState.gameBoard[move] === 0;
+}
+
+//Game Logic
+function doMove(gameState) {
+  if (gameState.isOver) return;
+
+  if (gameState.isPlayerTurn) {
+    const input = getUserInput(gameState);
+
+    while (gameState.isPlayerTurn) {
+      if (isValidMove(gameState, input)) {
+        gameState.isPlayerTurn = false;
+        gameState.gameBoard[input] = 1;
+        ++gameState.usedCells;
+      }
+    }
+  } else {
+    while (!gameState.isPlayerTurn) {
+      const input = Math.floor(Math.random() * 9);
+      if (isValidMove(gameState, input)) {
+        gameState.isPlayerTurn = true;
+        gameState.gameBoard[input] = 7;
+        ++gameState.usedCells;
+      }
+    }
+  }
+}
+//Output Gameboard for console
+function getGameboardResult(gameState) {
+  let _board = "";
+  for (let i = 0; i < 3; ++i) {
+    _board +=
+      "\n" +
+      (gameState.gameBoard[i * 3] == 0
+        ? i * 3
+        : gameState.gameBoard[i * 3] === 1
+        ? "X"
+        : "O");
+    _board +=
+      " " +
+      (gameState.gameBoard[i * 3 + 1] == 0
+        ? i * 3 + 1
+        : gameState.gameBoard[i * 3 + 1] === 1
+        ? "X"
+        : "O");
+    _board +=
+      " " +
+      (gameState.gameBoard[i * 3 + 2] == 0
+        ? i * 3 + 2
+        : gameState.gameBoard[i * 3 + 2] === 1
+        ? "X"
+        : "O");
+  }
+  return _board;
+}
+//User Input Logic
+function getUserInput(gameState) {
+  let _board = getGameboardResult(gameState);
+
+  const input = +prompt(
+    `Is Player Turn: ${gameState.isPlayerTurn} \n Player symbol: X \n Board: ${_board}`
+  );
+  if (isValidMove(gameState, input)) return input;
+  else return getUserInput(gameState);
+}
+//GameOver Logic
+function isGameOver(gameState, winnerCombos) {
+  for (let i = 0; i < winnerCombos.length; ++i) {
+    const match = winnerCombos[i];
+    const a = match[0];
+    const b = match[1];
+    const c = match[2];
+    const sumResult =
+      gameState.gameBoard[a] + gameState.gameBoard[b] + gameState.gameBoard[c];
+
+    if (sumResult != 0) {
+      gameState.isOver = sumResult === 3;
+      if (!gameState.isOver) gameState.isOver = sumResult === 21;
+    }
+    if (gameState.isOver) {
+      gameState.winner = gameState.isPlayerTurn ? "O" : "X";
+
+      console.log(
+        "Winning combo " +
+          i +
+          " GameBoard Result: \n " +
+          getGameboardResult(gameState)
+      );
+      break;
+    } else {
+      if (gameState.usedCells === 9) {
+        gameState.isOver = true;
+        gameState.winner = "None";
+      }
+    }
+  }
+}
+//Game
+function game() {
+  //States
+  const winnerCombos = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  let gameState = {
+    isOver: false,
+    isPlayerTurn: true,
+    winner: "None",
+    gameBoard: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    usedCells: 0,
+  };
+  //Logic
+  while (!gameState.isOver) {
+    doMove(gameState);
+    isGameOver(gameState, winnerCombos);
+  }
+  //Output
+  console.log(`The winner is ${gameState.winner}!`);
+}
+
+game();
